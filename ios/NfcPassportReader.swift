@@ -4,6 +4,22 @@ import OpenSSL
 import React
 import UIKit
 
+struct NFCCustomMessages {
+    let requestPresentPassport: String
+    let successfulRead: String
+    let authenticatingWithPassport: String
+    let readingDataGroup: String
+    let error: String?
+
+    init(dictionary: NSDictionary) {
+        self.requestPresentPassport = dictionary["requestPresentPassport"] as? String ?? "Hold your iPhone near an NFC-enabled document."
+        self.successfulRead = dictionary["successfulRead"] as? String ?? "Document Successfully Read."
+        self.authenticatingWithPassport = dictionary["authenticatingWithPassport"] as? String ?? "Authenticating with document..."
+        self.readingDataGroup = dictionary["readingDataGroup"] as? String ?? "Read Data"
+        self.error = dictionary["error"] as? String
+    }
+}
+
 @objc(NfcPassportReader)
 class NfcPassportReader: NSObject {
   private let passportReader = PassportReader()
@@ -25,85 +41,68 @@ class NfcPassportReader: NSObject {
   }
 
   @objc func startReading(
-    _ options: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+    mrzKey: String, customMessages: [String: String],
+    resolver resolve: @escaping RCTPromiseResolveBlock,
     rejecter reject: @escaping RCTPromiseRejectBlock
   ) {
-    let bacKey = options["bacKey"] as? NSDictionary
-    let includeImages = options["includeImages"] as? Bool
 
-    let documentNo = bacKey?["documentNo"] as? String
-    let expiryDate = bacKey?["expiryDate"] as? String
-    let birthDate = bacKey?["birthDate"] as? String
-
-    if let documentNo = documentNo, let expiryDate = expiryDate, let birthDate = birthDate {
-      if let birthDateFormatted = birthDate.convertToYYMMDD() {
-        passportUtil.dateOfBirth = birthDateFormatted
-      } else {
-        reject("ERROR_INVALID_BIRTH_DATE", "Invalid birth date", nil)
-      }
-
-      if let expiryDateFormatted = expiryDate.convertToYYMMDD() {
-        passportUtil.expiryDate = expiryDateFormatted
-      } else {
-        reject("ERROR_INVALID_EXPIRY_DATE", "Invalid expiry date", nil)
-      }
-
-      passportUtil.passportNumber = documentNo
-
-      let mrzKey = passportUtil.getMRZKey()
-
-      var tags: [DataGroupId] = [.COM, .DG1, .DG11]
-
-      if includeImages ?? false {
-        tags.append(.DG2)
-      }
-
-      let finalTags = tags // Create immutable copy
-
-      let customMessageHandler: (NFCViewDisplayMessage) -> String? = { displayMessage in
+    let messages = NFCCustomMessages(dictionary: customMessages as NSDictionary)
+      let customMessageHandler: (NFCViewDisplayMessage) -> String? = { [weak self] displayMessage in
+        guard let self = self else { return "" }
         switch displayMessage {
         case .requestPresentPassport:
-          return "Hold your iPhone near an NFC-enabled ID Card / Passport."
+            return messages.requestPresentPassport
         case .successfulRead:
-          return "ID Card / Passport Successfully Read."
+            return messages.successfulRead
+        case .authenticatingWithPassport:
+          return messages.authenticatingWithPassport
         case .readingDataGroupProgress(let dataGroup, let progress):
           let progressString = self.handleProgress(percentualProgress: progress)
-          let readingDataString = "Read Data"
-          return "\(readingDataString) \(dataGroup) ...\n\(progressString)"
+          return "\(messages.readingDataGroup) \(dataGroup) ...\n\(progressString)"
         case .error(let error):
-          return error.errorDescription
+            return messages.error ?? error.errorDescription
         default:
-          return nil
+          return ""
         }
       }
-
+    if mrzKey != nil {
       Task {
         do {
           let passport = try await self.passportReader.readPassport(
-            mrzKey: mrzKey, tags: finalTags, customDisplayMessage: customMessageHandler)
+            mrzKey: mrzKey,
+            tags: [.DG1, .DG2, .DG7, .DG11, .SOD],
+            customDisplayMessage: customMessageHandler
+          )
           print("passport: \(passport)")
+          var dgsDict: [String: Any] = [:]
 
-          let result: NSMutableDictionary = [
-            "birthDate": passport.dateOfBirth.convertToYYYYMMDD(),
-            "placeOfBirth": passport.placeOfBirth,
-            "documentNo": passport.documentNumber,
-            "expiryDate": passport.documentExpiryDate.convertToYYYYMMDD(),
-            "firstName": passport.firstName,
-            "gender": passport.gender,
-            "identityNo": passport.personalNumber,
-            "lastName": passport.lastName,
-            "mrz": passport.passportMRZ,
-            "nationality": passport.nationality,
-          ]
-
-          if includeImages ?? false {
-            if let passportImage = passport.passportImage,
-               let imageData = passportImage.jpegData(compressionQuality: 0.8)
-            {
-              result["photo"] = imageData.base64EncodedString()
-            }
+          // DG1 dict format
+          if let dg1 = passport.dataGroupsRead[.DG1] as? DataGroup1 {
+              dgsDict["DG1"] = binToHexRep(dg1.data)
           }
 
+          // DG2 dict format
+          if let dg2 = passport.dataGroupsRead[.DG2] as? DataGroup2 {
+              dgsDict["DG2"] = binToHexRep(dg2.data)
+          }
+
+          // DG7 dict format
+          if let dg7 = passport.dataGroupsRead[.DG7] as? DataGroup7 {
+              dgsDict["DG7"] = binToHexRep(dg7.data)
+          }
+
+          // DG11 dict format
+          if let dg11 = passport.dataGroupsRead[.DG11] as? DataGroup11 {
+              dgsDict["DG11"] = binToHexRep(dg11.data)
+          }
+
+          var result: [String: Any] = [
+              "dgs": dgsDict
+          ]
+
+          if let sod = passport.dataGroupsRead[.SOD] {
+              result["sod"] = binToHexRep(sod.data)
+          }
           resolve(result)
         } catch {
           reject("ERROR_READ_PASSPORT", "Error reading passport", nil)
@@ -114,7 +113,7 @@ class NfcPassportReader: NSObject {
     }
   }
 
-  func handleProgress(percentualProgress: Int) -> String {
+  private func handleProgress(percentualProgress: Int) -> String {
     let barWidth = 10
     let completedWidth = Int(Double(barWidth) * Double(percentualProgress) / 100.0)
     let remainingWidth = barWidth - completedWidth
@@ -122,6 +121,6 @@ class NfcPassportReader: NSObject {
     let completedBar = String(repeating: "🔵", count: completedWidth)
     let remainingBar = String(repeating: "⚪️", count: remainingWidth)
 
-    return "[\(completedBar)\(remainingBar)] \(percentualProgress)%"
+    return "\(completedBar)\(remainingBar)"
   }
 }
