@@ -1,5 +1,5 @@
 {
-  "name": "@didit/react-native-nfc-passport-reader",
+  "name": "@didit-sdk/react-native-nfc-passport-reader",
   "version": "0.0.1",
   "description": "Reads passports and ID cards using its the device NFC.",
   "main": "lib/commonjs/index",
