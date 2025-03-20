@@ -10,19 +10,21 @@ import {
 } from 'react-native';
 import NfcPassportReader, {
   type NfcResult,
-} from 'react-native-nfc-passport-reader';
+  type DocumentReadingProgress,
+} from '@didit-sdk/react-native-nfc-passport-reader';
 
 export default function App() {
   const [result, setResult] = React.useState<NfcResult>();
   const [tagDiscovered, setTagDiscovered] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    NfcPassportReader.addOnTagDiscoveredListener(() => {
-      console.log('Tag Discovered');
-      setTagDiscovered(true);
-    });
+    NfcPassportReader.addOnDocumentReadingProgressListener(
+      (progress: DocumentReadingProgress) => {
+        console.log('Document Reading Progress:', progress);
+      }
+    );
 
-    NfcPassportReader.addOnNfcStateChangedListener((state) => {
+    NfcPassportReader.addOnNfcStateChangedListener((state: string) => {
       console.log('NFC State Changed:', state);
     });
 
@@ -33,19 +35,12 @@ export default function App() {
   }, []);
 
   const startReading = () => {
-    NfcPassportReader.startReading({
-      bacKey: {
-        documentNo: '123456789', // Document Number
-        expiryDate: '2025-03-09', // YYYY-MM-DD
-        birthDate: '2025-03-09', // YYYY-MM-DD
-      },
-      includeImages: true, // Include images in the result (default: false)
-    })
-      .then((res) => {
+    NfcPassportReader.startReading('E26621219596111802502287')
+      .then((res: NfcResult) => {
         setTagDiscovered(false);
         setResult(res);
       })
-      .catch((e) => {
+      .catch((e: Error) => {
         setTagDiscovered(false);
         console.error(e.message);
       });
@@ -57,8 +52,8 @@ export default function App() {
 
   const openNfcSettings = async () => {
     try {
-      const result = await NfcPassportReader.openNfcSettings();
-      console.log(result);
+      const openNfcSettingsResult = await NfcPassportReader.openNfcSettings();
+      console.log(openNfcSettingsResult);
     } catch (e) {
       console.log(e);
     }
@@ -66,8 +61,8 @@ export default function App() {
 
   const isNfcSupported = async () => {
     try {
-      const result = await NfcPassportReader.isNfcSupported();
-      console.log(result);
+      const isNfcSupportedResult = await NfcPassportReader.isNfcSupported();
+      console.log(isNfcSupportedResult);
     } catch (e) {
       console.log(e);
     }
@@ -75,8 +70,8 @@ export default function App() {
 
   const isNfcEnabled = async () => {
     try {
-      const result = await NfcPassportReader.isNfcEnabled();
-      console.log(result);
+      const isNfcEnabledResult = await NfcPassportReader.isNfcEnabled();
+      console.log(isNfcEnabledResult);
     } catch (e) {
       console.log(e);
     }

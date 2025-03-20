@@ -1,5 +1,10 @@
 import { NativeModules, DeviceEventEmitter, Platform } from 'react-native';
-
+import {
+  type MRZKey,
+  type NfcResult,
+  NfcPassportReaderEvent,
+  type DocumentReadingProgress,
+} from './types';
 const LINKING_ERROR =
   `The package 'react-native-nfc-passport-reader' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
@@ -17,37 +22,10 @@ const NfcPassportReaderNativeModule = NativeModules.NfcPassportReader
       }
     );
 
-enum NfcPassportReaderEvent {
-  TAG_DISCOVERED = 'onTagDiscovered',
-  NFC_STATE_CHANGED = 'onNfcStateChanged',
-}
-
-export type StartReadingParams = {
-  bacKey: {
-    documentNo: string;
-    expiryDate: string;
-    birthDate: string;
-  };
-  includeImages?: boolean; // default: false
-};
-
-export type NfcResult = {
-  birthDate: string;
-  placeOfBirth?: string;
-  documentNo: string;
-  expiryDate: string;
-  firstName: string;
-  gender: string;
-  identityNo?: string;
-  lastName: string;
-  mrz: string;
-  nationality: string;
-  originalFacePhoto?: string; // base64
-};
-
 export default class NfcPassportReader {
-  static startReading(params: StartReadingParams): Promise<NfcResult> {
-    return NfcPassportReaderNativeModule.startReading(params);
+  static startReading(mrzKey: MRZKey): Promise<NfcResult> {
+    console.log('startReading: ', mrzKey);
+    return NfcPassportReaderNativeModule.startReading(mrzKey);
   }
 
   static stopReading() {
@@ -58,9 +36,14 @@ export default class NfcPassportReader {
     }
   }
 
-  static addOnTagDiscoveredListener(callback: () => void) {
+  static addOnDocumentReadingProgressListener(
+    callback: (progress: DocumentReadingProgress) => void
+  ) {
     if (Platform.OS === 'android') {
-      this.addListener(NfcPassportReaderEvent.TAG_DISCOVERED, callback);
+      this.addListener(
+        NfcPassportReaderEvent.DOCUMENT_READING_PROGRESS,
+        callback
+      );
     }
   }
 
@@ -102,7 +85,7 @@ export default class NfcPassportReader {
   static removeListeners() {
     if (Platform.OS === 'android') {
       DeviceEventEmitter.removeAllListeners(
-        NfcPassportReaderEvent.TAG_DISCOVERED
+        NfcPassportReaderEvent.DOCUMENT_READING_PROGRESS
       );
       DeviceEventEmitter.removeAllListeners(
         NfcPassportReaderEvent.NFC_STATE_CHANGED

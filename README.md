@@ -17,13 +17,14 @@ To use the NFC Passport Reader in your React Native project, follow these steps:
 
 1. **Install the Plugin**:
    ```sh
-   npm install react-native-nfc-passport-reader
+   npm install @didit-sdk/react-native-nfc-passport-reader
    ```
 2. **Link Native Modules (if required for versions below React Native 0.60)**:
    ```sh
-   npx react-native link react-native-nfc-passport-reader
+   npx react-native link @didit-sdk/react-native-nfc-passport-reader
    ```
 3. **iOS Additional Setup**:
+
    - Modify your Info.plist to include necessary NFC usage descriptions.
      ```xml
      <key>NFCReaderUsageDescription</key>
@@ -55,8 +56,8 @@ To use the NFC Passport Reader in your React Native project, follow these steps:
 Import and use the NFC Passport Reader as follows:
 
 ```ts
-import NfcPassportReader from 'react-native-nfc-passport-reader';
-import type { NfcResult } from 'react-native-nfc-passport-reader';
+import NfcPassportReader from '@didit-sdk/react-native-nfc-passport-reader';
+import type { NfcResult } from '@didit-sdk/react-native-nfc-passport-reader';
 ```
 
 ### Basic Methods
@@ -72,7 +73,7 @@ import type { NfcResult } from 'react-native-nfc-passport-reader';
     includeImages: true, // Include images in the result (default: false)
   });
   ```
-- **stopReading**: Stops the NFC passport reading process. ***(Only Android)***
+- **stopReading**: Stops the NFC passport reading process. **_(Only Android)_**
   ```ts
   NfcPassportReader.stopReading();
   ```
@@ -105,7 +106,7 @@ import type { NfcResult } from 'react-native-nfc-passport-reader';
 
 ### Settings
 
-- **openNfcSettings**: Opens the device's NFC settings. ***(Only Android)***
+- **openNfcSettings**: Opens the device's NFC settings. **_(Only Android)_**
   ```ts
   NfcPassportReader.openNfcSettings();
   ```
