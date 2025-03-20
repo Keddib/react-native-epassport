@@ -1895,9 +1895,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@didit/react-native-nfc-passport-reader@workspace:.":
+"@didit-sdk/react-native-nfc-passport-reader@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@didit/react-native-nfc-passport-reader@workspace:."
+  resolution: "@didit-sdk/react-native-nfc-passport-reader@workspace:."
   dependencies:
     "@commitlint/config-conventional": ^17.0.2
     "@evilmartians/lefthook": ^1.5.0
