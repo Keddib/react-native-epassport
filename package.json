@@ -41,7 +41,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/batuhanoztrk/react-native-nfc-passport-reader.git"
+    "url": "git+https://github.com/Keddib/react-native-epassport.git"
   },
   "author": "Batuhan Öztürk <batuhanoztrk@hotmail.com> (https://github.com/batuhanoztrk)",
   "license": "MIT",
@@ -50,7 +50,8 @@
   },
   "homepage": "https://github.com/batuhanoztrk/react-native-nfc-passport-reader#readme",
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
