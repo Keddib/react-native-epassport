@@ -46,69 +46,65 @@ class NfcPassportReader: NSObject {
     rejecter reject: @escaping RCTPromiseRejectBlock
   ) {
     let messages = NFCCustomMessages(dictionary: customMessages as NSDictionary?)
-      let customMessageHandler: (NFCViewDisplayMessage) -> String? = { [weak self] displayMessage in
-        guard let self = self else { return "" }
-        switch displayMessage {
-        case .requestPresentPassport:
-            return messages.requestPresentPassport
-        case .successfulRead:
-            return messages.successfulRead
-        case .authenticatingWithPassport:
-          return messages.authenticatingWithPassport
-        case .readingDataGroupProgress(let dataGroup, let progress):
-          let progressString = self.handleProgress(percentualProgress: progress)
-          return "\(messages.readingDataGroup) \(dataGroup) ...\n\(progressString)"
-        case .error(let error):
-            return messages.error ?? error.errorDescription
-        default:
-          return ""
-        }
+    let customMessageHandler: (NFCViewDisplayMessage) -> String? = { [weak self] displayMessage in
+      guard let self = self else { return "" }
+      switch displayMessage {
+      case .requestPresentPassport:
+          return messages.requestPresentPassport
+      case .successfulRead:
+          return messages.successfulRead
+      case .authenticatingWithPassport:
+        return messages.authenticatingWithPassport
+      case .readingDataGroupProgress(let dataGroup, let progress):
+        let progressString = self.handleProgress(percentualProgress: progress)
+        return "\(messages.readingDataGroup) \(dataGroup) ...\n\(progressString)"
+      case .error(let error):
+          return messages.error ?? error.errorDescription
+      default:
+        return ""
       }
-    if mrzKey != nil {
-      Task {
-        do {
-          let passport = try await self.passportReader.readPassport(
-            mrzKey: mrzKey,
-            tags: [.DG1, .DG2, .DG7, .DG11, .SOD],
-            customDisplayMessage: customMessageHandler
-          )
-          print("passport: \(passport)")
-          var dgsDict: [String: Any] = [:]
+    }
+    Task {
+      do {
+        let passport = try await self.passportReader.readPassport(
+          mrzKey: mrzKey,
+          tags: [.DG1, .DG2, .DG7, .DG11, .SOD],
+          customDisplayMessage: customMessageHandler
+        )
+        print("passport: \(passport)")
+        var dgsDict: [String: Any] = [:]
 
-          // DG1 dict format
-          if let dg1 = passport.dataGroupsRead[.DG1] as? DataGroup1 {
-              dgsDict["DG1"] = binToHexRep(dg1.data)
-          }
-
-          // DG2 dict format
-          if let dg2 = passport.dataGroupsRead[.DG2] as? DataGroup2 {
-              dgsDict["DG2"] = binToHexRep(dg2.data)
-          }
-
-          // DG7 dict format
-          if let dg7 = passport.dataGroupsRead[.DG7] as? DataGroup7 {
-              dgsDict["DG7"] = binToHexRep(dg7.data)
-          }
-
-          // DG11 dict format
-          if let dg11 = passport.dataGroupsRead[.DG11] as? DataGroup11 {
-              dgsDict["DG11"] = binToHexRep(dg11.data)
-          }
-
-          var result: [String: Any] = [
-              "dgs": dgsDict
-          ]
-
-          if let sod = passport.dataGroupsRead[.SOD] {
-              result["sod"] = binToHexRep(sod.data)
-          }
-          resolve(result)
-        } catch {
-          reject("ERROR_READ_PASSPORT", "Error reading passport", nil)
+        // DG1 dict format
+        if let dg1 = passport.dataGroupsRead[.DG1] as? DataGroup1 {
+            dgsDict["DG1"] = binToHexRep(dg1.data)
         }
+
+        // DG2 dict format
+        if let dg2 = passport.dataGroupsRead[.DG2] as? DataGroup2 {
+            dgsDict["DG2"] = binToHexRep(dg2.data)
+        }
+
+        // DG7 dict format
+        if let dg7 = passport.dataGroupsRead[.DG7] as? DataGroup7 {
+            dgsDict["DG7"] = binToHexRep(dg7.data)
+        }
+
+        // DG11 dict format
+        if let dg11 = passport.dataGroupsRead[.DG11] as? DataGroup11 {
+            dgsDict["DG11"] = binToHexRep(dg11.data)
+        }
+
+        var result: [String: Any] = [
+            "dgs": dgsDict
+        ]
+
+        if let sod = passport.dataGroupsRead[.SOD] {
+            result["sod"] = binToHexRep(sod.data)
+        }
+        resolve(result)
+      } catch {
+        reject("ERROR_READ_PASSPORT", "Error reading passport", nil)
       }
-    } else {
-      reject("ERROR_INVALID_BACK_KEY", "Invalid bac key", nil)
     }
   }
 
