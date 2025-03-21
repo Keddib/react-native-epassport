@@ -4,8 +4,8 @@
 
 @interface RCT_EXTERN_MODULE (NfcPassportReader, NSObject)
 
-RCT_EXTERN_METHOD(startReading
-                  : (NSDictionary *)args resolver
+RCT_EXTERN_METHOD(readPassport: (NSString *)mrzKey
+                  customMessages: (NSDictionary *)customMessages
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject)
 
