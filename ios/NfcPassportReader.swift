@@ -11,12 +11,12 @@ struct NFCCustomMessages {
     let readingDataGroup: String
     let error: String?
 
-    init(dictionary: NSDictionary) {
-        self.requestPresentPassport = dictionary["requestPresentPassport"] as? String ?? "Hold your iPhone near an NFC-enabled document."
-        self.successfulRead = dictionary["successfulRead"] as? String ?? "Document Successfully Read."
-        self.authenticatingWithPassport = dictionary["authenticatingWithPassport"] as? String ?? "Authenticating with document..."
-        self.readingDataGroup = dictionary["readingDataGroup"] as? String ?? "Read Data"
-        self.error = dictionary["error"] as? String
+    init(dictionary: NSDictionary?) {
+        self.requestPresentPassport = dictionary?["requestPresentPassport"] as? String ?? "Hold your iPhone near an NFC-enabled document."
+        self.successfulRead = dictionary?["successfulRead"] as? String ?? "Document Successfully Read."
+        self.authenticatingWithPassport = dictionary?["authenticatingWithPassport"] as? String ?? "Authenticating with document..."
+        self.readingDataGroup = dictionary?["readingDataGroup"] as? String ?? "Read Data"
+        self.error = dictionary?["error"] as? String
     }
 }
 
@@ -41,12 +41,11 @@ class NfcPassportReader: NSObject {
   }
 
   @objc func startReading(
-    mrzKey: String, customMessages: [String: String],
+    mrzKey: String, customMessages: [String: String]?,
     resolver resolve: @escaping RCTPromiseResolveBlock,
     rejecter reject: @escaping RCTPromiseRejectBlock
   ) {
-
-    let messages = NFCCustomMessages(dictionary: customMessages as NSDictionary)
+    let messages = NFCCustomMessages(dictionary: customMessages as NSDictionary?)
       let customMessageHandler: (NFCViewDisplayMessage) -> String? = { [weak self] displayMessage in
         guard let self = self else { return "" }
         switch displayMessage {

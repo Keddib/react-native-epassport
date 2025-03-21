@@ -4,9 +4,10 @@ import {
   type NfcResult,
   NfcPassportReaderEvent,
   type DocumentReadingProgress,
+  type CustomMessages,
 } from './types';
 const LINKING_ERROR =
-  `The package 'react-native-nfc-passport-reader' doesn't seem to be linked. Make sure: \n\n` +
+  `The package '@didit-sdk/react-native-nfc-passport-reader' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
@@ -25,9 +26,12 @@ const NfcPassportReaderNativeModule = NativeModules.NfcPassportReader
 export * from './types';
 
 export default class NfcPassportReader {
-  static startReading(mrzKey: MRZKey): Promise<NfcResult> {
+  static startReading(
+    mrzKey: MRZKey,
+    customMessages?: CustomMessages
+  ): Promise<NfcResult> {
     console.log('startReading: ', mrzKey);
-    return NfcPassportReaderNativeModule.startReading(mrzKey);
+    return NfcPassportReaderNativeModule.startReading(mrzKey, customMessages);
   }
 
   static stopReading() {
