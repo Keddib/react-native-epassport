@@ -31,6 +31,9 @@ export default class NfcPassportReader {
     customMessages?: CustomMessages
   ): Promise<NfcResult> {
     console.log('startReading: ', mrzKey);
+    if (Platform.OS === 'android') {
+      return NfcPassportReaderNativeModule.startReading(mrzKey);
+    }
     return NfcPassportReaderNativeModule.startReading(mrzKey, customMessages);
   }
 
