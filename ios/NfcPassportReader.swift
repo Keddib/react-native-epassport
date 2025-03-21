@@ -41,7 +41,8 @@ class NfcPassportReader: NSObject {
   }
 
   @objc func startReading(
-    mrzKey: String, customMessages: [String: String]?,
+    _ mrzKey: NSString,
+    customMessages: NSDictionary?,
     resolver resolve: @escaping RCTPromiseResolveBlock,
     rejecter reject: @escaping RCTPromiseRejectBlock
   ) {
@@ -67,7 +68,7 @@ class NfcPassportReader: NSObject {
     Task {
       do {
         let passport = try await self.passportReader.readPassport(
-          mrzKey: mrzKey,
+          mrzKey: mrzKey as String,
           tags: [.DG1, .DG2, .DG7, .DG11, .SOD],
           customDisplayMessage: customMessageHandler
         )
