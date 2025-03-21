@@ -15,6 +15,7 @@ const DOCUMENT_READING_PROGRESS = {
 export type DocumentReadingProgress = keyof typeof DOCUMENT_READING_PROGRESS;
 
 export type MRZKey = string;
+
 export type NfcResult = {
   dgs: {
     DG1?: string;

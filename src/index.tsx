@@ -22,6 +22,8 @@ const NfcPassportReaderNativeModule = NativeModules.NfcPassportReader
       }
     );
 
+export * from './types';
+
 export default class NfcPassportReader {
   static startReading(mrzKey: MRZKey): Promise<NfcResult> {
     console.log('startReading: ', mrzKey);
