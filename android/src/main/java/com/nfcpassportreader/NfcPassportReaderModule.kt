@@ -171,8 +171,10 @@ class NfcPassportReaderModule(reactContext: ReactApplicationContext) :
               val map = result.serializeToMap()
               val reactMap = jsonToReactMap.convertJsonToMap(JSONObject(map))
 
+              sendEvent(DOCUMENT_READING_PROGRESS, "SUCCESS")
               _promise?.resolve(reactMap)
             } catch (e: Exception) {
+              sendEvent(DOCUMENT_READING_PROGRESS, "ERROR")
               reject(e)
             }
           }
@@ -266,7 +268,7 @@ class NfcPassportReaderModule(reactContext: ReactApplicationContext) :
     }
     // send success event
 
-    // sendEvent(DOCUMENT_READING_PROGRESS, "DG7")
+    sendEvent(DOCUMENT_READING_PROGRESS, "DG7")
     // val dg7In = service.getInputStream(PassportService.EF_DG7)
     // val dg7File = DG7File(dg7In)
     // if (dg7In != null) {
