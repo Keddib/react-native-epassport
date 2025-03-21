@@ -42,7 +42,7 @@ class NfcPassportReader: NSObject {
 
   @objc func startReading(
     _ mrzKey: NSString,
-    customMessages: NSDictionary?,
+    customMessages: NSDictionary,
     resolver resolve: @escaping RCTPromiseResolveBlock,
     rejecter reject: @escaping RCTPromiseRejectBlock
   ) {
