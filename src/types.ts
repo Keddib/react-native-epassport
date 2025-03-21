@@ -10,6 +10,8 @@ const DOCUMENT_READING_PROGRESS = {
   DG2: 'DG2',
   DG7: 'DG7',
   DG11: 'DG11',
+  ERROR: 'ERROR',
+  SUCCESS: 'SUCCESS',
 } as const;
 
 export type DocumentReadingProgress = keyof typeof DOCUMENT_READING_PROGRESS;
